@@ -4,10 +4,12 @@ import {
   getSemilleroById,
   getIntegrantesBySemillero,
   getProductosBySemillero,
+  getActividadesBySemillero,
 } from '../state/store.js';
 import { semillerosApi } from '../api/semillerosApi.js';
 import { integrantesApi } from '../api/integrantesApi.js';
 import { productosApi } from '../api/productosApi.js';
+import { actividadesApi } from '../api/actividadesApi.js';
 import { confirmDialog } from '../ui/modal.js';
 import { showToast } from '../ui/toast.js';
 import {
@@ -15,6 +17,7 @@ import {
   getInitials,
   openIntegranteFormModal,
   openProductoFormModal,
+  openActividadFormModal,
   openSemilleroFormModal,
   renderEmptyState,
 } from '../ui/components.js';
@@ -33,6 +36,7 @@ export function renderSemilleroDetailView(container, semilleroId) {
 
   const integrantes = getIntegrantesBySemillero(semillero.id);
   const productos = getProductosBySemillero(semillero.id);
+  const actividades = getActividadesBySemillero(semillero.id);
   const associatedIds = new Set((semillero.lineas || []).map((l) => Number(l.id)));
   const availableLineas = store.lineas.filter((l) => !associatedIds.has(Number(l.id)));
 
@@ -158,6 +162,56 @@ export function renderSemilleroDetailView(container, semilleroId) {
         'Registra los productos desarrollados por este semillero según la tipología de Minciencias.'
       );
 
+  const actividadesRowsHtml = actividades.length
+    ? `
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Tipo de Actividad</th>
+              <th style="width: 220px;">% de Cumplimiento</th>
+              <th style="text-align: right;">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${actividades
+              .map(
+                (a) => `
+              <tr>
+                <td>
+                  <strong>${escapeHtml(a.nombre)}</strong>
+                </td>
+                <td>
+                  <span class="badge badge--member">${escapeHtml(a.tipoActividadNombre)}</span>
+                </td>
+                <td>
+                  <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="flex: 1; height: 8px; background: var(--border-color); border-radius: 4px; overflow: hidden;">
+                      <div style="width: ${Math.min(100, Math.max(0, a.porcentajeCumplimiento))}%; height: 100%; background: ${a.porcentajeCumplimiento === 100 ? '#16a34a' : 'var(--ufps-red-600)'};"></div>
+                    </div>
+                    <strong style="min-width: 44px; font-size: 0.88rem; color: ${a.porcentajeCumplimiento === 100 ? '#16a34a' : 'var(--text-primary)'};">
+                      ${a.porcentajeCumplimiento}%
+                    </strong>
+                  </div>
+                </td>
+                <td style="text-align: right;">
+                  <div class="card-actions" style="justify-content: flex-end;">
+                    <button type="button" class="btn btn--secondary btn--sm" data-edit-actividad="${a.id}">Editar</button>
+                    <button type="button" class="btn btn--danger btn--sm" data-delete-actividad="${a.id}">Eliminar</button>
+                  </div>
+                </td>
+              </tr>`
+              )
+              .join('')}
+          </tbody>
+        </table>
+      </div>`
+    : renderEmptyState(
+        'Sin actividades de investigación registradas',
+        'Registra las actividades de investigación desarrolladas por este semillero.'
+      );
+
   container.innerHTML = `
     <section>
       <div class="hero-banner">
@@ -219,6 +273,14 @@ export function renderSemilleroDetailView(container, semilleroId) {
             <button type="button" class="btn btn--primary btn--sm" id="addProductoTableBtn">+ Nuevo producto</button>
           </div>
           ${productosRowsHtml}
+        </div>
+
+        <div class="panel panel--span-12" style="padding: 0; overflow: hidden;">
+          <div class="panel__header" style="padding: 18px 20px 14px; margin-bottom: 0; border-bottom: 1px solid var(--border-color);">
+            <h2 class="panel__title">3. Otras Actividades de Investigación (${actividades.length})</h2>
+            <button type="button" class="btn btn--primary btn--sm" id="addActividadTableBtn">+ Nueva actividad</button>
+          </div>
+          ${actividadesRowsHtml}
         </div>
       </div>
     </section>
@@ -339,6 +401,51 @@ export function renderSemilleroDetailView(container, semilleroId) {
             await productosApi.remove(producto.id);
             await loadAllData();
             showToast('Producto eliminado', 'success');
+            renderSemilleroDetailView(container, semillero.id);
+          } catch (err) {
+            showToast(err.message, 'error');
+            throw err;
+          }
+        },
+      });
+    });
+  });
+
+  // Agregar actividad preseleccionando este semillero
+  container.querySelector('#addActividadTableBtn')?.addEventListener('click', () => {
+    openActividadFormModal(
+      { defaultSemilleroId: semillero.id, lockSemillero: true },
+      () => renderSemilleroDetailView(container, semillero.id)
+    );
+  });
+
+  // Editar actividad
+  container.querySelectorAll('[data-edit-actividad]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const actividad = store.actividades.find((a) => Number(a.id) === Number(btn.dataset.editActividad));
+      if (actividad) {
+        openActividadFormModal(
+          { actividad, lockSemillero: true },
+          () => renderSemilleroDetailView(container, semillero.id)
+        );
+      }
+    });
+  });
+
+  // Eliminar actividad
+  container.querySelectorAll('[data-delete-actividad]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const actividad = store.actividades.find((a) => Number(a.id) === Number(btn.dataset.deleteActividad));
+      if (!actividad) return;
+
+      confirmDialog({
+        title: 'Eliminar actividad de investigación',
+        message: `¿Deseas eliminar la actividad "${actividad.nombre}" del semillero ${semillero.sigla}?`,
+        onConfirm: async () => {
+          try {
+            await actividadesApi.remove(actividad.id);
+            await loadAllData();
+            showToast('Actividad eliminada', 'success');
             renderSemilleroDetailView(container, semillero.id);
           } catch (err) {
             showToast(err.message, 'error');

@@ -2,6 +2,8 @@ import { store, loadAllData, getIntegrantesBySemillero } from '../state/store.js
 import { semillerosApi } from '../api/semillerosApi.js';
 import { integrantesApi } from '../api/integrantesApi.js';
 import { productosApi } from '../api/productosApi.js';
+import { tiposActividadApi } from '../api/tiposActividadApi.js';
+import { actividadesApi } from '../api/actividadesApi.js';
 import { openModal, closeModal } from './modal.js';
 import { showToast } from './toast.js';
 
@@ -571,6 +573,179 @@ export function openProductoDetailModal(producto, onEdit = null) {
       backdrop.querySelector('#editFromDetailBtn')?.addEventListener('click', () => {
         closeModal();
         onEdit(producto);
+      });
+    },
+  });
+}
+
+/**
+ * Abre el modal compartido para crear o editar una Actividad de Investigación.
+ */
+export function openActividadFormModal({ actividad = null, defaultSemilleroId = null, lockSemillero = false } = {}, onSaved = null) {
+  const isEdit = Boolean(actividad);
+  const selectedSemilleroId = actividad?.semilleroId ?? defaultSemilleroId ?? '';
+  const selectedTipoId = actividad?.tipoActividadId ?? '';
+
+  const semilleroOptions = store.semilleros
+    .map(
+      (s) => `
+      <option value="${s.id}" ${Number(selectedSemilleroId) === Number(s.id) ? 'selected' : ''}>
+        ${escapeHtml(s.sigla)} — ${escapeHtml(s.nombre)}
+      </option>`
+    )
+    .join('');
+
+  const tipoOptions = store.tiposActividad
+    .map(
+      (t) => `
+      <option value="${t.id}" ${Number(selectedTipoId) === Number(t.id) ? 'selected' : ''}>
+        ${escapeHtml(t.nombre)}
+      </option>`
+    )
+    .join('');
+
+  openModal({
+    title: isEdit ? `Editar Actividad · ${actividad.nombre}` : 'Registrar Actividad de Investigación',
+    bodyHtml: `
+      <form id="actividadForm" class="form-grid">
+        <div class="form-field form-field--full">
+          <label class="form-label" for="actSemillero">Semillero *</label>
+          <select class="form-control" id="actSemillero" name="semilleroId" required ${lockSemillero ? 'disabled' : ''}>
+            <option value="">Seleccione un semillero...</option>
+            ${semilleroOptions}
+          </select>
+          ${lockSemillero ? `<input type="hidden" name="semilleroId" value="${escapeHtml(selectedSemilleroId)}" />` : ''}
+        </div>
+
+        <div class="form-field">
+          <label class="form-label" for="actTipo">Tipo de Actividad *</label>
+          <select class="form-control" id="actTipo" name="tipoActividadId" required>
+            <option value="">Seleccione el tipo de actividad...</option>
+            ${tipoOptions}
+          </select>
+        </div>
+
+        <div class="form-field">
+          <label class="form-label" for="actCumplimiento">% de Cumplimiento (0 - 100%) *</label>
+          <input type="number" class="form-control" id="actCumplimiento" name="porcentajeCumplimiento"
+            required min="0" max="100" step="1"
+            value="${actividad?.porcentajeCumplimiento ?? 100}" placeholder="Ej. 100" />
+        </div>
+
+        <div class="form-field form-field--full">
+          <label class="form-label" for="actNombre">Nombre de la actividad *</label>
+          <input class="form-control" id="actNombre" name="nombre" required maxlength="255"
+            value="${escapeHtml(actividad?.nombre || '')}"
+            placeholder="Ej. Apertura Semana Internacional Ciencia y Tecnología" />
+        </div>
+
+        <div class="form-field form-field--full" id="actFormError"></div>
+      </form>
+    `,
+    footerHtml: `
+      <button type="button" class="btn btn--secondary" data-modal-close>Cancelar</button>
+      <button type="submit" form="actividadForm" class="btn btn--primary" id="saveActividadBtn">
+        ${isEdit ? 'Actualizar actividad' : 'Registrar actividad'}
+      </button>
+    `,
+    onMount: (backdrop) => {
+      const form = backdrop.querySelector('#actividadForm');
+      const errorBox = backdrop.querySelector('#actFormError');
+      const saveBtn = backdrop.querySelector('#saveActividadBtn');
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        errorBox.innerHTML = '';
+
+        const formData = new FormData(form);
+        const payload = {
+          semilleroId: Number(formData.get('semilleroId')),
+          tipoActividadId: Number(formData.get('tipoActividadId')),
+          nombre: String(formData.get('nombre') || '').trim(),
+          porcentajeCumplimiento: Number(formData.get('porcentajeCumplimiento')),
+        };
+
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Guardando...';
+
+        try {
+          if (isEdit) {
+            await actividadesApi.update(actividad.id, payload);
+            showToast('Actividad actualizada correctamente', 'success');
+          } else {
+            await actividadesApi.create(payload);
+            showToast('Actividad registrada correctamente', 'success');
+          }
+          await loadAllData();
+          closeModal();
+          if (onSaved) onSaved();
+        } catch (err) {
+          errorBox.innerHTML = `<div class="form-error">${escapeHtml(err.message)}</div>`;
+          saveBtn.disabled = false;
+          saveBtn.textContent = isEdit ? 'Actualizar actividad' : 'Registrar actividad';
+        }
+      });
+    },
+  });
+}
+
+/**
+ * Abre el modal para crear o editar un Tipo de Actividad en el catálogo.
+ */
+export function openTipoActividadFormModal(tipoActividad = null, onSaved = null) {
+  const isEdit = Boolean(tipoActividad);
+
+  openModal({
+    title: isEdit ? `Editar Tipo de Actividad · ${tipoActividad.nombre}` : 'Nuevo Tipo de Actividad',
+    bodyHtml: `
+      <form id="tipoActividadForm" class="form-grid">
+        <div class="form-field form-field--full">
+          <label class="form-label" for="tipoActNombre">Nombre del tipo de actividad *</label>
+          <input class="form-control" id="tipoActNombre" name="nombre" required maxlength="160"
+            value="${escapeHtml(tipoActividad?.nombre || '')}" placeholder="Ej. Espacio de socialización" />
+        </div>
+        <div class="form-field form-field--full" id="tipoActFormError"></div>
+      </form>
+    `,
+    footerHtml: `
+      <button type="button" class="btn btn--secondary" data-modal-close>Cancelar</button>
+      <button type="submit" form="tipoActividadForm" class="btn btn--primary" id="saveTipoActBtn">
+        ${isEdit ? 'Actualizar tipo' : 'Guardar tipo'}
+      </button>
+    `,
+    onMount: (backdrop) => {
+      const form = backdrop.querySelector('#tipoActividadForm');
+      const errorBox = backdrop.querySelector('#tipoActFormError');
+      const saveBtn = backdrop.querySelector('#saveTipoActBtn');
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        errorBox.innerHTML = '';
+
+        const formData = new FormData(form);
+        const payload = {
+          nombre: String(formData.get('nombre') || '').trim(),
+        };
+
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Guardando...';
+
+        try {
+          if (isEdit) {
+            await tiposActividadApi.update(tipoActividad.id, payload);
+            showToast('Tipo de actividad actualizado', 'success');
+          } else {
+            await tiposActividadApi.create(payload);
+            showToast('Tipo de actividad creado', 'success');
+          }
+          await loadAllData();
+          closeModal();
+          if (onSaved) onSaved();
+        } catch (err) {
+          errorBox.innerHTML = `<div class="form-error">${escapeHtml(err.message)}</div>`;
+          saveBtn.disabled = false;
+          saveBtn.textContent = isEdit ? 'Actualizar tipo' : 'Guardar tipo';
+        }
       });
     },
   });

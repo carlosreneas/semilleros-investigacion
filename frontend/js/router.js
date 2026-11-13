@@ -4,8 +4,10 @@ import { renderSemillerosView } from './views/semillerosView.js';
 import { renderSemilleroDetailView } from './views/semilleroDetailView.js';
 import { renderIntegrantesView } from './views/integrantesView.js';
 import { renderProductosView } from './views/productosView.js';
+import { renderActividadesView } from './views/actividadesView.js';
 import { renderDirectoresView } from './views/directoresView.js';
 import { renderLineasView } from './views/lineasView.js';
+import { renderTiposActividadView } from './views/tiposActividadView.js';
 
 function updateNavActive(routeKey) {
   document.querySelectorAll('.nav-link[data-route]').forEach((link) => {
@@ -77,10 +79,24 @@ export function renderCurrentRoute() {
     return;
   }
 
+  if (section === 'actividades') {
+    updateNavActive('actividades');
+    updateBreadcrumb([{ label: 'Otras Actividades de Investigación' }]);
+    renderActividadesView(container);
+    return;
+  }
+
   if (section === 'lineas') {
     updateNavActive('lineas');
     updateBreadcrumb([{ label: 'Líneas de Investigación' }]);
     renderLineasView(container);
+    return;
+  }
+
+  if (section === 'tipos-actividad') {
+    updateNavActive('tipos-actividad');
+    updateBreadcrumb([{ label: 'Tipos de Actividad' }]);
+    renderTiposActividadView(container);
     return;
   }
 

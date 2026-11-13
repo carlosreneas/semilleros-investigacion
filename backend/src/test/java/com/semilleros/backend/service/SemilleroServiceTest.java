@@ -8,7 +8,9 @@ import com.semilleros.backend.entity.Director;
 import com.semilleros.backend.entity.Linea;
 import com.semilleros.backend.entity.Semillero;
 import com.semilleros.backend.exception.BusinessException;
+import com.semilleros.backend.repository.ActividadRepository;
 import com.semilleros.backend.repository.IntegranteRepository;
+import com.semilleros.backend.repository.ProductoRepository;
 import com.semilleros.backend.repository.SemilleroRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,6 +34,12 @@ class SemilleroServiceTest {
 
     @Mock
     private IntegranteRepository integranteRepository;
+
+    @Mock
+    private ProductoRepository productoRepository;
+
+    @Mock
+    private ActividadRepository actividadRepository;
 
     @Mock
     private DirectorService directorService;
