@@ -61,3 +61,4 @@ public class TipoActividadController {
         return ResponseEntity.noContent().build();
     }
 }
+

@@ -11,3 +11,4 @@ public interface TipoActividadRepository extends JpaRepository<TipoActividad, Lo
 
     boolean existsByNombreIgnoreCaseAndIdNot(String nombre, Long id);
 }
+

@@ -42,3 +42,4 @@ public class Actividad {
     @Column(name = "porcentaje_cumplimiento", nullable = false)
     private Integer porcentajeCumplimiento;
 }
+

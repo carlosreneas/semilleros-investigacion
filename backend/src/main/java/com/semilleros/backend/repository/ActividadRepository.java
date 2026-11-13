@@ -15,3 +15,4 @@ public interface ActividadRepository extends JpaRepository<Actividad, Long> {
 
     boolean existsByTipoActividadId(Long tipoActividadId);
 }
+

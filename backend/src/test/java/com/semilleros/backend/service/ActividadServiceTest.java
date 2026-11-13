@@ -109,3 +109,4 @@ class ActividadServiceTest {
         verify(actividadRepository).delete(act);
     }
 }
+

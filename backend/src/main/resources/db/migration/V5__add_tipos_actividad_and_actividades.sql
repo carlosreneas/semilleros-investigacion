@@ -81,3 +81,4 @@ INSERT INTO actividades (semillero_id, tipo_actividad_id, nombre, porcentaje_cum
         'Exhibición de Realidad Virtual y Videojuegos Formativos',
         100
     );
+

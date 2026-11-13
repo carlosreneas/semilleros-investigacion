@@ -10,3 +10,4 @@ export const actividadesApi = {
     request(`/actividades/${id}`, { method: 'PUT', body: JSON.stringify(payload) }),
   remove: (id) => request(`/actividades/${id}`, { method: 'DELETE' }),
 };
+

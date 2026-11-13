@@ -19,3 +19,4 @@ public class TipoActividadResponseDTO {
     @Schema(description = "Nombre del tipo de actividad", example = "Espacio de socialización")
     private String nombre;
 }
+

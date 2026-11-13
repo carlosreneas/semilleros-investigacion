@@ -28,3 +28,4 @@ public class TipoActividad {
     @Column(nullable = false, unique = true, length = 160)
     private String nombre;
 }
+

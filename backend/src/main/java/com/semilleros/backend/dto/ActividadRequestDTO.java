@@ -37,3 +37,4 @@ public class ActividadRequestDTO {
     @Schema(description = "Porcentaje de cumplimiento de la actividad (0 - 100%)", example = "100")
     private Integer porcentajeCumplimiento;
 }
+

@@ -9,3 +9,4 @@ export const tiposActividadApi = {
     request(`/tipos-actividad/${id}`, { method: 'PUT', body: JSON.stringify(payload) }),
   remove: (id) => request(`/tipos-actividad/${id}`, { method: 'DELETE' }),
 };
+

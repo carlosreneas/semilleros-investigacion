@@ -87,3 +87,4 @@ class TipoActividadServiceTest {
         verify(tipoActividadRepository).delete(tipo);
     }
 }
+
