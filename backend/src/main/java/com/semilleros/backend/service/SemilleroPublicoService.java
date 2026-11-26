@@ -59,6 +59,7 @@ public class SemilleroPublicoService {
                         .id(s.getId())
                         .nombre(s.getNombre())
                         .sigla(s.getSigla())
+                        .logoUrl(s.getLogoUrl())
                         .mision(s.getMision())
                         .vision(s.getVision())
                         .objetivoGeneral(s.getObjetivoGeneral())

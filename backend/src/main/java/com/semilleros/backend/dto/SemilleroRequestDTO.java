@@ -47,5 +47,9 @@ public class SemilleroRequestDTO {
 
     @Schema(description = "IDs de las líneas de investigación asociadas al semillero", example = "[1, 2]")
     private Set<Long> lineaIds;
+
+    @Size(max = 500, message = "La URL del logo no puede superar los 500 caracteres")
+    @Schema(description = "Ruta o URL del logo del semillero", example = "/uploads/logos/abc123.png")
+    private String logoUrl;
 }
 

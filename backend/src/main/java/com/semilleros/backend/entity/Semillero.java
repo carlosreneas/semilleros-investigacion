@@ -52,6 +52,9 @@ public class Semillero {
     @Column(name = "objetivo_general", columnDefinition = "TEXT")
     private String objetivoGeneral;
 
+    @Column(name = "logo_url", length = 500)
+    private String logoUrl;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "director_id", nullable = false)
     private Director director;

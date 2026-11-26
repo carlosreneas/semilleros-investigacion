@@ -67,6 +67,7 @@ public class SemilleroService {
                 .mision(request.getMision())
                 .vision(request.getVision())
                 .objetivoGeneral(request.getObjetivoGeneral())
+                .logoUrl(normalizeLogoUrl(request.getLogoUrl()))
                 .director(director)
                 .lineas(lineas)
                 .build();
@@ -92,6 +93,9 @@ public class SemilleroService {
         semillero.setMision(request.getMision());
         semillero.setVision(request.getVision());
         semillero.setObjetivoGeneral(request.getObjetivoGeneral());
+        if (request.getLogoUrl() != null) {
+            semillero.setLogoUrl(normalizeLogoUrl(request.getLogoUrl()));
+        }
         semillero.setDirector(director);
         if (request.getLineaIds() != null) {
             semillero.setLineas(resolveLineas(request.getLineaIds()));
@@ -169,6 +173,15 @@ public class SemilleroService {
                 .objetivoGeneral(semillero.getObjetivoGeneral())
                 .director(directorService.toResponseDTO(semillero.getDirector()))
                 .lineas(lineasDTO)
+                .logoUrl(semillero.getLogoUrl())
                 .build();
+    }
+
+    private String normalizeLogoUrl(String logoUrl) {
+        if (logoUrl == null) {
+            return null;
+        }
+        String trimmed = logoUrl.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 }

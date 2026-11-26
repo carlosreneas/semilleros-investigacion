@@ -6,6 +6,13 @@
  */
 
 const API_BASE = window.localStorage.getItem('UFPS_API_URL') || 'http://localhost:8080/api';
+const BACKEND_ORIGIN = API_BASE.replace(/\/api\/?$/, '');
+
+function resolveAssetUrl(path) {
+  if (!path) return '';
+  if (/^https?:\/\//i.test(path) || path.startsWith('data:')) return path;
+  return `${BACKEND_ORIGIN}${path.startsWith('/') ? '' : '/'}${path}`;
+}
 
 // ── Helpers ───────────────────────────────────────────────────────────────
 
@@ -45,6 +52,14 @@ function el(id) {
 // ── Render functions ─────────────────────────────────────────────────────
 
 function renderHero(s) {
+  const logoEl = el('heroLogo');
+  if (s.logoUrl) {
+    logoEl.src = resolveAssetUrl(s.logoUrl);
+    logoEl.alt = `Logo ${s.sigla || s.nombre}`;
+    logoEl.hidden = false;
+  } else {
+    logoEl.hidden = true;
+  }
   el('heroSigla').textContent = s.sigla || '';
   el('heroNombre').textContent = s.nombre || '';
 
@@ -213,7 +228,10 @@ function renderDirectory(semilleros) {
     .map(
       (s) => `
       <div class="pub-directory-card">
-        <span class="pub-directory-card__sigla">${esc(s.sigla)}</span>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          ${s.logoUrl ? `<img src="${esc(resolveAssetUrl(s.logoUrl))}" alt="Logo ${esc(s.sigla)}" style="width: 42px; height: 42px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border-color); background: #fff;" />` : ''}
+          <span class="pub-directory-card__sigla">${esc(s.sigla)}</span>
+        </div>
         <div class="pub-directory-card__nombre">${esc(s.nombre)}</div>
         <div class="pub-directory-card__meta">
           ${s.grupoSigla ? `Grupo: <strong>${esc(s.grupoSigla)}</strong><br>` : ''}

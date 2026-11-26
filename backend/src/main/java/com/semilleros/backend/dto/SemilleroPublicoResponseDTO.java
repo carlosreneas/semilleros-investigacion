@@ -24,6 +24,9 @@ public class SemilleroPublicoResponseDTO {
     @Schema(description = "Sigla del semillero", example = "SIAA")
     private String sigla;
 
+    @Schema(description = "Ruta o URL del logo del semillero", example = "/uploads/logos/abc123.png")
+    private String logoUrl;
+
     @Schema(description = "Misión del semillero")
     private String mision;
 

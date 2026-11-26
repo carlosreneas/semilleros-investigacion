@@ -1,3 +1,4 @@
+import { resolveAssetUrl } from '../config.js';
 import { store, loadAllData, getIntegrantesBySemillero } from '../state/store.js';
 import { semillerosApi } from '../api/semillerosApi.js';
 import { confirmDialog } from '../ui/modal.js';
@@ -78,7 +79,8 @@ export function renderSemillerosView(container) {
           return `
             <article class="semillero-card" data-semillero-id="${s.id}">
               <div class="semillero-card__header">
-                <div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  ${s.logoUrl ? `<img src="${escapeHtml(resolveAssetUrl(s.logoUrl))}" alt="Logo ${escapeHtml(s.sigla)}" style="width: 38px; height: 38px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border-color); background: #fff;" />` : ''}
                   <span class="sigla-badge">${escapeHtml(s.sigla)}</span>
                 </div>
                 <div class="card-actions">
@@ -150,10 +152,10 @@ export function renderSemillerosView(container) {
                 <tr>
                   <td>
                     <div style="display: flex; align-items: center; gap: 10px;">
-                      <span class="sigla-badge">${escapeHtml(s.sigla)}</span>
+                      ${s.logoUrl ? `<img src="${escapeHtml(resolveAssetUrl(s.logoUrl))}" alt="Logo ${escapeHtml(s.sigla)}" style="width: 38px; height: 38px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border-color); background: #fff; flex-shrink: 0;" />` : `<span class="sigla-badge">${escapeHtml(s.sigla)}</span>`}
                       <div>
                         <strong style="cursor: pointer;" data-action="open" data-id="${s.id}">
-                          ${escapeHtml(s.nombre)}
+                          ${s.logoUrl ? `<span class="sigla-badge" style="margin-right: 6px;">${escapeHtml(s.sigla)}</span>` : ''}${escapeHtml(s.nombre)}
                         </strong>
                         <div class="text-sm text-muted">
                           ${escapeHtml(s.grupoInvestigacion?.sigla ? `${s.grupoInvestigacion.sigla} · ${s.grupoInvestigacion.nombre}` : (s.grupoInvestigacion?.nombre || ''))}

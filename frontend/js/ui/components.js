@@ -1,3 +1,4 @@
+import { resolveAssetUrl } from '../config.js';
 import { store, loadAllData, getIntegrantesBySemillero } from '../state/store.js';
 import { semillerosApi } from '../api/semillerosApi.js';
 import { integrantesApi } from '../api/integrantesApi.js';
@@ -121,6 +122,20 @@ export function openSemilleroFormModal(semillero = null, onSaved = null) {
           <textarea class="form-control" id="semObjetivo" name="objetivoGeneral" placeholder="Objetivo principal...">${escapeHtml(semillero?.objetivoGeneral || '')}</textarea>
         </div>
         <div class="form-field form-field--full">
+          <label class="form-label" for="semLogoFile">Logo del semillero (opcional, máx. 5 MB)</label>
+          <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+            <img id="semLogoPreview" src="${semillero?.logoUrl ? escapeHtml(resolveAssetUrl(semillero.logoUrl)) : ''}" alt="Vista previa del logo"
+              style="width: 64px; height: 64px; object-fit: cover; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-subtle); ${semillero?.logoUrl ? '' : 'display: none;'}" />
+            <div style="flex: 1; min-width: 220px; display: flex; flex-direction: column; gap: 6px;">
+              <input class="form-control" id="semLogoFile" name="logoFile" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml" />
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span class="text-sm text-muted">Se guarda localmente en tu PC (fuera del repositorio).</span>
+                <button type="button" class="btn btn--secondary btn--sm" id="removeSemLogoBtn" style="${semillero?.logoUrl ? '' : 'display: none;'}">Quitar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="form-field form-field--full">
           <span class="form-label">Líneas de investigación asociadas</span>
           <div class="checkbox-grid">${lineasCheckboxes}</div>
         </div>
@@ -137,6 +152,34 @@ export function openSemilleroFormModal(semillero = null, onSaved = null) {
       const form = backdrop.querySelector('#semilleroForm');
       const errorBox = backdrop.querySelector('#semFormError');
       const saveBtn = backdrop.querySelector('#saveSemilleroBtn');
+      const logoInput = backdrop.querySelector('#semLogoFile');
+      const logoPreview = backdrop.querySelector('#semLogoPreview');
+      const removeLogoBtn = backdrop.querySelector('#removeSemLogoBtn');
+
+      let currentLogoUrl = semillero?.logoUrl || '';
+      let selectedLogoFile = null;
+
+      logoInput?.addEventListener('change', () => {
+        const file = logoInput.files?.[0];
+        if (!file) return;
+        selectedLogoFile = file;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          logoPreview.src = ev.target.result;
+          logoPreview.style.display = 'block';
+          removeLogoBtn.style.display = 'inline-flex';
+        };
+        reader.readAsDataURL(file);
+      });
+
+      removeLogoBtn?.addEventListener('click', () => {
+        selectedLogoFile = null;
+        currentLogoUrl = '';
+        logoInput.value = '';
+        logoPreview.src = '';
+        logoPreview.style.display = 'none';
+        removeLogoBtn.style.display = 'none';
+      });
 
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -144,21 +187,29 @@ export function openSemilleroFormModal(semillero = null, onSaved = null) {
 
         const formData = new FormData(form);
         const lineaIds = formData.getAll('lineaIds').map((id) => Number(id));
-        const payload = {
-          nombre: String(formData.get('nombre') || '').trim(),
-          sigla: String(formData.get('sigla') || '').trim(),
-          grupoInvestigacionId: Number(formData.get('grupoInvestigacionId')),
-          mision: String(formData.get('mision') || '').trim(),
-          vision: String(formData.get('vision') || '').trim(),
-          objetivoGeneral: String(formData.get('objetivoGeneral') || '').trim(),
-          directorId: Number(formData.get('directorId')),
-          lineaIds,
-        };
 
         saveBtn.disabled = true;
         saveBtn.textContent = 'Guardando...';
 
         try {
+          let logoUrl = currentLogoUrl;
+          if (selectedLogoFile) {
+            const uploaded = await semillerosApi.uploadLogo(selectedLogoFile);
+            logoUrl = uploaded.url;
+          }
+
+          const payload = {
+            nombre: String(formData.get('nombre') || '').trim(),
+            sigla: String(formData.get('sigla') || '').trim(),
+            grupoInvestigacionId: Number(formData.get('grupoInvestigacionId')),
+            mision: String(formData.get('mision') || '').trim(),
+            vision: String(formData.get('vision') || '').trim(),
+            objetivoGeneral: String(formData.get('objetivoGeneral') || '').trim(),
+            directorId: Number(formData.get('directorId')),
+            lineaIds,
+            logoUrl,
+          };
+
           if (isEdit) {
             await semillerosApi.update(semillero.id, payload);
             showToast('Semillero actualizado correctamente', 'success');

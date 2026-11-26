@@ -41,5 +41,8 @@ public class SemilleroResponseDTO {
 
     @Schema(description = "Líneas de investigación asociadas al semillero")
     private List<LineaResponseDTO> lineas;
+
+    @Schema(description = "Ruta o URL del logo del semillero", example = "/uploads/logos/abc123.png")
+    private String logoUrl;
 }
 

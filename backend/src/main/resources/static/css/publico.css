@@ -91,6 +91,16 @@ a { color: inherit; text-decoration: none; }
   pointer-events: none;
 }
 .pub-hero__content { position: relative; max-width: 900px; margin-inline: auto; }
+.pub-hero__top { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+.pub-hero__logo {
+  width: 88px; height: 88px;
+  object-fit: cover;
+  border-radius: 16px;
+  border: 2px solid rgba(255,255,255,.35);
+  background: #fff;
+  box-shadow: 0 8px 20px rgba(0,0,0,.22);
+  flex-shrink: 0;
+}
 .pub-hero__sigla-badge {
   display: inline-block;
   background: rgba(255,255,255,.18);
