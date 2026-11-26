@@ -173,20 +173,58 @@ export function setupPersonaSearchSelect(wrapperElement, options = {}) {
     }
   };
 
+  const updateDropdownPlacement = () => {
+    const rect = displayBox.getBoundingClientRect();
+    const modalBody = wrapperElement.closest('.modal__body') || wrapperElement.closest('.modal');
+    let isDropup = false;
+
+    if (modalBody) {
+      const bodyRect = modalBody.getBoundingClientRect();
+      const spaceBelow = bodyRect.bottom - rect.bottom;
+      const spaceAbove = rect.top - bodyRect.top;
+      // Si hacia abajo queda poco espacio (menos de 220px) y hacia arriba hay más espacio
+      if (spaceBelow < 220 && spaceAbove > 140) {
+        isDropup = true;
+      }
+    } else {
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const spaceAbove = rect.top;
+      if (spaceBelow < 250 && spaceAbove > 180) {
+        isDropup = true;
+      }
+    }
+
+    if (isDropup) {
+      dropdown.classList.add('is-dropup');
+    } else {
+      dropdown.classList.remove('is-dropup');
+    }
+    return isDropup;
+  };
+
   const openDropdown = () => {
     isOpen = true;
+    wrapperElement.style.zIndex = '50';
+    const isDropup = updateDropdownPlacement();
     displayBox.classList.add('is-open');
     dropdown.classList.add('is-open');
     displayBox.setAttribute('aria-expanded', 'true');
     searchInput.value = '';
     renderItems('');
-    setTimeout(() => searchInput.focus(), 50);
+    setTimeout(() => {
+      searchInput.focus();
+      if (!isDropup) {
+        dropdown.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      }
+    }, 50);
   };
 
   const closeDropdown = () => {
     isOpen = false;
+    wrapperElement.style.zIndex = '';
     displayBox.classList.remove('is-open');
     dropdown.classList.remove('is-open');
+    dropdown.classList.remove('is-dropup');
     displayBox.setAttribute('aria-expanded', 'false');
   };
 
