@@ -303,6 +303,12 @@ export function renderSemilleroDetailView(container, semilleroId) {
           <button type="button" class="btn btn--white-outline btn--sm" id="generarReporteBtn" title="Descargar Informe de Gestión de Semilleros FO-IN-14 en formato PDF">
             📄 Generar reporte FO-IN-14
           </button>
+          <button type="button" class="btn btn--white-outline btn--sm" id="generarFoIn12Btn" title="Descargar el formato FO-IN-12 (estudiantes que cumplen el requerimiento de participación) en Excel">
+            📊 Generar FO-IN-12 (Excel)
+          </button>
+          <button type="button" class="btn btn--white-outline btn--sm" id="generarFoIn19Btn" title="Descargar el Plan de Acción FO-IN-19 en formato Word">
+            📝 Generar FO-IN-19 (Word)
+          </button>
           <button type="button" class="btn btn--white-outline btn--sm" id="enviarCorreoBannerBtn" title="Enviar correo a los participantes de este semillero">
             ✉ Enviar correo
           </button>
@@ -439,6 +445,46 @@ export function renderSemilleroDetailView(container, semilleroId) {
     } finally {
       generarReporteBtn.disabled = false;
       generarReporteBtn.innerHTML = originalText;
+    }
+  });
+
+  // Generar y descargar formato FO-IN-12 (Excel)
+  const generarFoIn12Btn = container.querySelector('#generarFoIn12Btn');
+  generarFoIn12Btn?.addEventListener('click', async () => {
+    const originalText = generarFoIn12Btn.innerHTML;
+    generarFoIn12Btn.disabled = true;
+    generarFoIn12Btn.innerHTML = '⏳ Generando Excel...';
+
+    try {
+      const filename = await reportesApi.descargarReporteFoIn12(semillero.id);
+      showToast(`Formato "${filename}" descargado exitosamente.`, 'success');
+    } catch (err) {
+      showToast(err.message || 'Error al generar el formato FO-IN-12.', 'error');
+    } finally {
+      generarFoIn12Btn.disabled = false;
+      generarFoIn12Btn.innerHTML = originalText;
+    }
+  });
+
+  // Generar y descargar formato FO-IN-19 - Plan de Acción (Word)
+  const generarFoIn19Btn = container.querySelector('#generarFoIn19Btn');
+  generarFoIn19Btn?.addEventListener('click', async () => {
+    const originalText = generarFoIn19Btn.innerHTML;
+    generarFoIn19Btn.disabled = true;
+    generarFoIn19Btn.innerHTML = '⏳ Generando Word...';
+
+    // Periodo académico actual (ej. 2025-1, 2025-2)
+    const now = new Date();
+    const currentPeriod = `${now.getFullYear()}-${now.getMonth() < 6 ? '1' : '2'}`;
+
+    try {
+      const filename = await reportesApi.descargarReporteFoIn19(semillero.id, currentPeriod);
+      showToast(`Formato "${filename}" descargado exitosamente.`, 'success');
+    } catch (err) {
+      showToast(err.message || 'Error al generar el formato FO-IN-19.', 'error');
+    } finally {
+      generarFoIn19Btn.disabled = false;
+      generarFoIn19Btn.innerHTML = originalText;
     }
   });
 
