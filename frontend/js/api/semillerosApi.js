@@ -35,4 +35,9 @@ export const semillerosApi = {
     });
   },
   removeFoto: (id) => request(`/semilleros/${id}/foto`, { method: 'DELETE' }),
+  enviarCorreo: (id, payload) =>
+    request(`/semilleros/${id}/correo`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
 };

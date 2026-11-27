@@ -14,6 +14,9 @@ function updateSidebarStatus(state) {
   const tipoActCount = document.getElementById('navCountTiposActividad');
   const dirCount = document.getElementById('navCountDirectores');
   const progCount = document.getElementById('navCountProgramas');
+  const perCount = document.getElementById('navCountPersonas');
+  const facCount = document.getElementById('navCountFacultades');
+  const depCount = document.getElementById('navCountDepartamentos');
   const dot = document.getElementById('apiStatusDot');
   const text = document.getElementById('apiStatusText');
   const url = document.getElementById('apiStatusUrl');
@@ -28,6 +31,9 @@ function updateSidebarStatus(state) {
   if (tipoActCount) tipoActCount.textContent = String(state.tiposActividad.length);
   if (dirCount) dirCount.textContent = String(state.directores.length);
   if (progCount) progCount.textContent = String((state.programas || []).length);
+  if (perCount) perCount.textContent = String((state.personas || []).length);
+  if (facCount) facCount.textContent = String((state.facultades || []).length);
+  if (depCount) depCount.textContent = String((state.departamentos || []).length);
 
   if (url) {
     url.textContent = API_BASE_URL.replace(/^https?:\/\//, '');

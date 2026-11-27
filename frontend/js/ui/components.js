@@ -1134,4 +1134,141 @@ export function openCapacitacionFormModal({ capacitacion = null, defaultSemiller
   });
 }
 
+/**
+ * Abre el modal para redactar y enviar un correo a los participantes de un semillero específico.
+ */
+export function openEnviarCorreoModal(semillero, integrantes = [], onSent = null) {
+  if (!semillero) return;
+
+  const validIntegrantes = integrantes.filter((i) => i.email && i.email.trim() !== '');
+
+  const integrantesCheckboxesHtml = validIntegrantes.length
+    ? `
+      <div style="margin-bottom: 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <label class="form-label" style="margin-bottom: 0;">Destinatarios (${validIntegrantes.length} participantes con correo) *</label>
+          <button type="button" class="btn btn--link text-xs" id="toggleAllIntegrantesBtn" style="padding: 0; color: var(--primary-color); cursor: pointer; background: none; border: none;">
+            Desmarcar todos
+          </button>
+        </div>
+        <div class="recipients-selector" style="max-height: 150px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: var(--radius-sm, 6px); padding: 8px 12px; background: var(--bg-surface, #f8fafc);">
+          ${validIntegrantes
+            .map(
+              (i) => `
+            <label style="display: flex; align-items: center; gap: 10px; font-size: 0.86rem; padding: 5px 0; border-bottom: 1px solid rgba(0,0,0,0.04); cursor: pointer;">
+              <input type="checkbox" name="integranteIds" value="${i.id}" checked class="integrante-checkbox" />
+              <span>
+                <strong>${escapeHtml(i.nombre)}</strong>
+                <span class="text-sm text-muted">(${escapeHtml(i.email)})</span>
+                ${i.esLider ? '<span class="badge badge--leader" style="font-size: 0.7rem; padding: 1px 6px; margin-left: 4px;">Líder</span>' : ''}
+              </span>
+            </label>`
+            )
+            .join('')}
+        </div>
+        <div class="text-xs text-muted" style="margin-top: 4px;">Solo se enviará a los participantes seleccionados que pertenecen exclusivamente al semillero <strong>${escapeHtml(semillero.sigla)}</strong>.</div>
+      </div>`
+    : `
+      <div class="empty-state" style="padding: 16px; margin-bottom: 16px; background: #fff1f2; border: 1px solid #fecdd3; border-radius: 6px;">
+        <p style="color: #be123c; margin: 0; font-size: 0.9rem;">
+          Este semillero no tiene integrantes con correo electrónico registrado. Registra o actualiza los correos de los integrantes para habilitar el envío.
+        </p>
+      </div>`;
+
+  openModal({
+    title: `✉ Enviar correo a participantes · ${escapeHtml(semillero.sigla)}`,
+    bodyHtml: `
+      <form id="enviarCorreoForm" class="form-grid">
+        <div class="form-field form-field--full" id="correoErrorBox"></div>
+
+        <div class="form-field form-field--full">
+          <div style="background: var(--ufps-red-50, #fdf2f4); border: 1px solid var(--ufps-red-200, #f9d0d7); border-radius: 6px; padding: 12px 14px; margin-bottom: 4px; font-size: 0.88rem; color: var(--text-primary);">
+            <strong>Semillero:</strong> ${escapeHtml(semillero.nombre)} (<code>${escapeHtml(semillero.sigla)}</code>)<br/>
+            <span class="text-sm text-muted">Los correos se enviarán con copia oculta (BCC) garantizando la privacidad de los participantes.</span>
+          </div>
+        </div>
+
+        <div class="form-field form-field--full">
+          ${integrantesCheckboxesHtml}
+        </div>
+
+        <div class="form-field form-field--full">
+          <label class="form-label" for="correoAsunto">Asunto del correo *</label>
+          <input class="form-control" id="correoAsunto" name="asunto" required maxlength="200"
+            placeholder="Ej. Convocatoria a reunión de avance o socialización" />
+        </div>
+
+        <div class="form-field form-field--full">
+          <label class="form-label" for="correoMensaje">Mensaje *</label>
+          <textarea class="form-control" id="correoMensaje" name="mensaje" required rows="6" maxlength="10000"
+            placeholder="Escribe el mensaje que recibirán los participantes del semillero..."></textarea>
+        </div>
+
+        <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px; width: 100%;">
+          <button type="button" class="btn btn--secondary btn--sm" data-modal-close>Cancelar</button>
+          <button type="submit" class="btn btn--primary btn--sm" id="enviarCorreoSubmitBtn" ${validIntegrantes.length === 0 ? 'disabled' : ''}>
+            ✉ Enviar correo
+          </button>
+        </div>
+      </form>
+    `,
+    onMount: (modalEl) => {
+      const form = modalEl.querySelector('#enviarCorreoForm');
+      const submitBtn = modalEl.querySelector('#enviarCorreoSubmitBtn');
+      const errorBox = modalEl.querySelector('#correoErrorBox');
+      const toggleBtn = modalEl.querySelector('#toggleAllIntegrantesBtn');
+      const checkboxes = modalEl.querySelectorAll('.integrante-checkbox');
+
+      let allChecked = true;
+      toggleBtn?.addEventListener('click', () => {
+        allChecked = !allChecked;
+        checkboxes.forEach((cb) => {
+          cb.checked = allChecked;
+        });
+        toggleBtn.textContent = allChecked ? 'Desmarcar todos' : 'Marcar todos';
+      });
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        errorBox.innerHTML = '';
+
+        const formData = new FormData(form);
+        const asunto = String(formData.get('asunto') || '').trim();
+        const mensaje = String(formData.get('mensaje') || '').trim();
+
+        const selectedIds = Array.from(modalEl.querySelectorAll('.integrante-checkbox:checked')).map((cb) =>
+          Number(cb.value)
+        );
+
+        if (validIntegrantes.length > 0 && selectedIds.length === 0) {
+          errorBox.innerHTML = '<div class="form-error">Debes seleccionar al menos un participante destinatario.</div>';
+          return;
+        }
+
+        const payload = {
+          asunto,
+          mensaje,
+          integranteIds: selectedIds.length > 0 ? selectedIds : null,
+        };
+
+        const originalText = submitBtn.textContent;
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Enviando correo...';
+
+        try {
+          const res = await semillerosApi.enviarCorreo(semillero.id, payload);
+          showToast(res.mensaje || 'Correo enviado exitosamente a los participantes', 'success');
+          closeModal();
+          if (onSent) onSent(res);
+        } catch (err) {
+          errorBox.innerHTML = `<div class="form-error">${escapeHtml(err.message)}</div>`;
+          submitBtn.disabled = false;
+          submitBtn.textContent = originalText;
+        }
+      });
+    },
+  });
+}
+
+
 

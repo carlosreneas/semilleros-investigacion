@@ -8,6 +8,9 @@ import { actividadesApi } from '../api/actividadesApi.js';
 import { capacitacionesApi } from '../api/capacitacionesApi.js';
 import { gruposInvestigacionApi } from '../api/gruposInvestigacionApi.js';
 import { programasApi } from '../api/programasApi.js';
+import { facultadesApi } from '../api/facultadesApi.js';
+import { departamentosApi } from '../api/departamentosApi.js';
+import { personasApi } from '../api/personasApi.js';
 
 const listeners = new Set();
 
@@ -23,6 +26,10 @@ export const store = {
   tiposActividad: [],
   actividades: [],
   capacitaciones: [],
+  facultades: [],
+  departamentos: [],
+  personas: [],
+  roles: [],
   apiOnline: false,
   lastError: null,
 };
@@ -38,7 +45,23 @@ function notify() {
 
 export async function loadAllData() {
   try {
-    const [semilleros, integrantes, programas, lineas, directores, gruposInvestigacion, productos, tiposProducto, tiposActividad, actividades, capacitaciones] = await Promise.all([
+    const [
+      semilleros,
+      integrantes,
+      programas,
+      lineas,
+      directores,
+      gruposInvestigacion,
+      productos,
+      tiposProducto,
+      tiposActividad,
+      actividades,
+      capacitaciones,
+      facultades,
+      departamentos,
+      personas,
+      roles,
+    ] = await Promise.all([
       semillerosApi.getAll(),
       integrantesApi.getAll(),
       programasApi.getAll(),
@@ -50,6 +73,10 @@ export async function loadAllData() {
       tiposActividadApi.getAll(),
       actividadesApi.getAll(),
       capacitacionesApi.getAll(),
+      facultadesApi.getAll(),
+      departamentosApi.getAll(),
+      personasApi.getAll(),
+      personasApi.getRoles(),
     ]);
 
     store.semilleros = semilleros;
@@ -63,6 +90,10 @@ export async function loadAllData() {
     store.tiposActividad = tiposActividad;
     store.actividades = actividades;
     store.capacitaciones = capacitaciones;
+    store.facultades = facultades;
+    store.departamentos = departamentos;
+    store.personas = personas;
+    store.roles = roles;
     store.apiOnline = true;
     store.lastError = null;
   } catch (error) {

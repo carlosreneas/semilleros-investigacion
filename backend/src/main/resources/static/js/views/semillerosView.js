@@ -1,4 +1,5 @@
 import { store, loadAllData, getIntegrantesBySemillero } from '../state/store.js';
+import { resolveFileUrl } from '../config.js';
 import { semillerosApi } from '../api/semillerosApi.js';
 import { confirmDialog } from '../ui/modal.js';
 import { showToast } from '../ui/toast.js';
@@ -70,13 +71,13 @@ export function renderSemillerosView(container) {
   const cardsHtml = `
     <div class="cards-grid">
       ${filtered
-        .map((s) => {
-          const count = getIntegrantesBySemillero(s.id).length;
-          const lineasHtml = (s.lineas || []).length
-            ? s.lineas.map((l) => `<span class="tag">${escapeHtml(l.nombre)}</span>`).join('')
-            : '<span class="text-sm text-muted">Sin líneas asociadas</span>';
+      .map((s) => {
+        const count = getIntegrantesBySemillero(s.id).length;
+        const lineasHtml = (s.lineas || []).length
+          ? s.lineas.map((l) => `<span class="tag">${escapeHtml(l.nombre)}</span>`).join('')
+          : '<span class="text-sm text-muted">Sin líneas asociadas</span>';
 
-          return `
+        return `
             <article class="semillero-card" data-semillero-id="${s.id}">
               ${s.fotoUrl ? `
                 <div class="semillero-card__banner" data-action="open" data-id="${s.id}" title="Ver semillero">
@@ -84,7 +85,11 @@ export function renderSemillerosView(container) {
                 </div>
               ` : ''}
               <div class="semillero-card__header">
-                <div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  ${s.logoUrl
+            ? `<img src="${escapeHtml(resolveFileUrl(s.logoUrl))}" alt="${escapeHtml(s.sigla)}" style="width: 36px; height: 36px; object-fit: contain; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: #fff; padding: 2px;" />`
+            : ''
+          }
                   <span class="sigla-badge">${escapeHtml(s.sigla)}</span>
                 </div>
                 <div class="card-actions">
@@ -127,8 +132,8 @@ export function renderSemillerosView(container) {
               </div>
             </article>
           `;
-        })
-        .join('')}
+      })
+      .join('')}
     </div>`;
 
   const tableHtml = `
@@ -146,22 +151,21 @@ export function renderSemillerosView(container) {
           </thead>
           <tbody>
             ${filtered
-              .map((s) => {
-                const count = getIntegrantesBySemillero(s.id).length;
-                const lineasTags = (s.lineas || []).length
-                  ? s.lineas.map((l) => `<span class="tag"><span>${escapeHtml(l.nombre)}</span></span>`).join('')
-                  : '<span class="text-sm text-muted">Sin líneas asociadas</span>';
+      .map((s) => {
+        const count = getIntegrantesBySemillero(s.id).length;
+        const lineasTags = (s.lineas || []).length
+          ? s.lineas.map((l) => `<span class="tag"><span>${escapeHtml(l.nombre)}</span></span>`).join('')
+          : '<span class="text-sm text-muted">Sin líneas asociadas</span>';
 
-                return `
+        return `
                 <tr>
                   <td>
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                      ${s.fotoUrl ? `
-                        <img src="${escapeHtml(resolveImageUrl(s.fotoUrl))}" alt="${escapeHtml(s.sigla)}" class="semillero-table-thumb" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';" />
-                        <span class="sigla-badge" style="display: none;">${escapeHtml(s.sigla)}</span>
-                      ` : `
-                        <span class="sigla-badge">${escapeHtml(s.sigla)}</span>
-                      `}
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                      ${s.logoUrl
+                        ? `<img src="${escapeHtml(resolveFileUrl(s.logoUrl))}" alt="${escapeHtml(s.sigla)}" style="width: 34px; height: 34px; object-fit: contain; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: #fff; padding: 2px; flex-shrink: 0;" />`
+                        : (s.fotoUrl ? `<img src="${escapeHtml(resolveImageUrl(s.fotoUrl))}" alt="${escapeHtml(s.sigla)}" class="semillero-table-thumb" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';" />` : '')
+                      }
+                      <span class="sigla-badge">${escapeHtml(s.sigla)}</span>
                       <div>
                         <strong style="cursor: pointer;" data-action="open" data-id="${s.id}">
                           ${escapeHtml(s.nombre)}
@@ -196,8 +200,8 @@ export function renderSemillerosView(container) {
                     </div>
                   </td>
                 </tr>`;
-              })
-              .join('')}
+      })
+      .join('')}
           </tbody>
         </table>
       </div>
@@ -208,12 +212,12 @@ export function renderSemillerosView(container) {
       ? tableHtml
       : cardsHtml
     : renderEmptyState(
-        'No se encontraron semilleros',
-        semilleros.length
-          ? 'Prueba ajustando los filtros o el término de búsqueda.'
-          : 'Aún no hay semilleros registrados en la base de datos.',
-        `<button type="button" class="btn btn--primary" id="emptyCreateSemilleroBtn">+ Crear primer semillero</button>`
-      );
+      'No se encontraron semilleros',
+      semilleros.length
+        ? 'Prueba ajustando los filtros o el término de búsqueda.'
+        : 'Aún no hay semilleros registrados en la base de datos.',
+      `<button type="button" class="btn btn--primary" id="emptyCreateSemilleroBtn">+ Crear primer semillero</button>`
+    );
 
   container.innerHTML = `
     <section>

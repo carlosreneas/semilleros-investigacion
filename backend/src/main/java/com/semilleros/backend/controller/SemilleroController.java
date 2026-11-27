@@ -1,7 +1,10 @@
 package com.semilleros.backend.controller;
 
+import com.semilleros.backend.dto.EnviarCorreoSemilleroRequestDTO;
+import com.semilleros.backend.dto.EnviarCorreoSemilleroResponseDTO;
 import com.semilleros.backend.dto.SemilleroRequestDTO;
 import com.semilleros.backend.dto.SemilleroResponseDTO;
+import com.semilleros.backend.service.CorreoSemilleroService;
 import com.semilleros.backend.service.SemilleroService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -31,6 +34,7 @@ import java.util.List;
 public class SemilleroController {
 
     private final SemilleroService semilleroService;
+    private final CorreoSemilleroService correoSemilleroService;
 
     @GetMapping
     @Operation(summary = "Listar semilleros", description = "Retorna todos los semilleros registrados")
@@ -107,6 +111,14 @@ public class SemilleroController {
     @Operation(summary = "Obtener logo del semillero", description = "Descarga o visualiza directamente el archivo binario del logo del semillero")
     public ResponseEntity<Resource> getLogo(@PathVariable Long id) {
         return semilleroService.getLogo(id);
+    }
+
+    @PostMapping("/{id}/correo")
+    @Operation(summary = "Enviar correo a los participantes del semillero", description = "Envía un correo electrónico exclusivamente a los integrantes que pertenecen al semillero especificado")
+    public ResponseEntity<EnviarCorreoSemilleroResponseDTO> enviarCorreo(
+            @PathVariable Long id,
+            @Valid @RequestBody EnviarCorreoSemilleroRequestDTO request) {
+        return ResponseEntity.ok(correoSemilleroService.enviarCorreoAParticipantes(id, request));
     }
 }
 

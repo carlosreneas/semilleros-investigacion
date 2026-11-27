@@ -8,6 +8,16 @@ let searchQuery = '';
 
 export function openProgramaModal(programa = null, onSaved) {
   const isEdit = Boolean(programa);
+
+  const facultadOptions = (store.facultades || [])
+    .map(
+      (f) => `
+      <option value="${f.id}" ${Number(programa?.facultad?.id) === Number(f.id) ? 'selected' : ''}>
+        ${escapeHtml(f.sigla)} - ${escapeHtml(f.nombre)}
+      </option>`
+    )
+    .join('');
+
   openModal({
     title: isEdit ? 'Editar Programa Académico' : 'Nuevo Programa Académico',
     size: 'sm',
@@ -25,6 +35,13 @@ export function openProgramaModal(programa = null, onSaved) {
             placeholder="Ej. Ingeniería de Sistemas"
             autofocus
           />
+        </div>
+        <div class="form-field form-field--full">
+          <label class="form-label" for="progFacultad">Facultad a la que pertenece</label>
+          <select class="form-control" id="progFacultad" name="facultadId">
+            <option value="">Seleccione una facultad...</option>
+            ${facultadOptions}
+          </select>
         </div>
         <div class="form-field form-field--full" id="progFormError"></div>
       </form>
@@ -44,8 +61,10 @@ export function openProgramaModal(programa = null, onSaved) {
         e.preventDefault();
         errorBox.innerHTML = '';
         const fd = new FormData(form);
+        const facVal = fd.get('facultadId');
         const payload = {
           nombre: String(fd.get('nombre') || '').trim(),
+          facultadId: facVal ? Number(facVal) : null,
         };
 
         if (!payload.nombre) {
@@ -93,6 +112,7 @@ export function renderProgramasView(container) {
               <tr>
                 <th style="width: 80px;">ID</th>
                 <th>Programa Académico</th>
+                <th>Facultad</th>
                 <th>Estudiantes Vinculados</th>
                 <th>Semilleros con Estudiantes</th>
                 <th style="text-align: right;">Acciones</th>
@@ -121,6 +141,12 @@ export function renderProgramasView(container) {
                     <td><code>#${p.id}</code></td>
                     <td>
                       <div class="table-title"><strong>${escapeHtml(p.nombre)}</strong></div>
+                    </td>
+                    <td>
+                      ${p.facultad
+                        ? `<span class="sigla-badge" style="margin-right: 4px;">${escapeHtml(p.facultad.sigla)}</span><span class="text-sm">${escapeHtml(p.facultad.nombre)}</span>`
+                        : '<span class="text-sm text-muted">Sin facultad</span>'
+                      }
                     </td>
                     <td>
                       <span class="badge ${students.length > 0 ? 'badge--member' : ''}" style="${students.length === 0 ? 'background: #f1f5f9; color: #64748b;' : ''}">

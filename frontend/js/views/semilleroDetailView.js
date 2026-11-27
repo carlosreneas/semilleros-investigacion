@@ -24,6 +24,7 @@ import {
   openActividadFormModal,
   openCapacitacionFormModal,
   openSemilleroFormModal,
+  openEnviarCorreoModal,
   renderEmptyState,
   resolveImageUrl,
 } from '../ui/components.js';
@@ -303,6 +304,9 @@ export function renderSemilleroDetailView(container, semilleroId) {
           <button type="button" class="btn btn--white-outline btn--sm" id="generarReporteBtn" title="Descargar Informe de Gestión de Semilleros FO-IN-14 en formato PDF">
             📄 Generar reporte FO-IN-14
           </button>
+          <button type="button" class="btn btn--white-outline btn--sm" id="enviarCorreoBannerBtn" title="Enviar correo a los participantes de este semillero">
+            ✉ Enviar correo
+          </button>
           <button type="button" class="btn btn--primary btn--sm" id="addIntegranteDetailBtn">+ Agregar integrante</button>
         </div>
       </div>
@@ -349,7 +353,10 @@ export function renderSemilleroDetailView(container, semilleroId) {
         <div class="panel panel--span-12" style="padding: 0; overflow: hidden;">
           <div class="panel__header" style="padding: 18px 20px 14px; margin-bottom: 0; border-bottom: 1px solid var(--border-color);">
             <h2 class="panel__title">Integrantes del Semillero (${integrantes.length})</h2>
-            <button type="button" class="btn btn--primary btn--sm" id="addIntegranteTableBtn">+ Nuevo integrante</button>
+            <div style="display: flex; gap: 8px;">
+              <button type="button" class="btn btn--secondary btn--sm" id="enviarCorreoTableBtn" title="Enviar correo a los integrantes de este semillero">✉ Enviar correo</button>
+              <button type="button" class="btn btn--primary btn--sm" id="addIntegranteTableBtn">+ Nuevo integrante</button>
+            </div>
           </div>
           ${integrantesRowsHtml}
         </div>
@@ -408,6 +415,13 @@ export function renderSemilleroDetailView(container, semilleroId) {
       generarReporteBtn.innerHTML = originalText;
     }
   });
+
+  // Enviar correo a los participantes del semillero
+  const handleOpenEnviarCorreo = () => {
+    openEnviarCorreoModal(semillero, integrantes);
+  };
+  container.querySelector('#enviarCorreoBannerBtn')?.addEventListener('click', handleOpenEnviarCorreo);
+  container.querySelector('#enviarCorreoTableBtn')?.addEventListener('click', handleOpenEnviarCorreo);
 
   // Agregar integrante preseleccionando este semillero
   const openAddIntegrante = () => {
