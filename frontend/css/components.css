@@ -1334,6 +1334,12 @@ textarea.form-control {
   display: none;
 }
 
+.persona-select-dropdown.is-dropup {
+  top: auto;
+  bottom: calc(100% + 4px);
+  box-shadow: 0 -10px 25px -5px rgba(0, 0, 0, 0.1), 0 -8px 10px -6px rgba(0, 0, 0, 0.05);
+}
+
 .persona-select-dropdown.is-open {
   display: block;
 }
